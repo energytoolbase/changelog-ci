@@ -16,6 +16,7 @@ jobs:
       - name: Run Changelog CI
         uses: enerygotoolbase/changelog-ci@master
         with:
+          token: 064ba924c5ffa2f89e16fe01d20ee48120272fe6
           changelog_filename: CHANGELOG.md
           config_file: changelog-ci-config.json
         # Add this if you are using it on a private repository
