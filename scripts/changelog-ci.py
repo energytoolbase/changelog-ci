@@ -101,7 +101,7 @@ class ChangelogCI:
         match = pattern.search(self.pull_request_title)
 
         if match:
-            return match.group() + datetime.now().strftime('%m/%d/%Y')
+            return match.group()
 
         return
 
@@ -378,7 +378,7 @@ class ChangelogCI:
         if not pull_request_data:
             return
 
-        string_data = self._parse_data(version, pull_request_data)
+        string_data = self._parse_data(f"{version} {datetime.now().strftime('%m/%d/%Y')}", pull_request_data)
 
         if self.config['commit_changelog']:
             subprocess.run(['echo', '::group::Commit Changelog'])
