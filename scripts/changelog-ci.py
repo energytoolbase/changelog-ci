@@ -2,7 +2,7 @@ import json
 import os
 import re
 import subprocess
-
+from datetime import datetime
 import requests
 
 
@@ -101,7 +101,7 @@ class ChangelogCI:
         match = pattern.search(self.pull_request_title)
 
         if match:
-            return match.group()
+            return match.group() + datetime.now().strftime('%m/%d/%Y')
 
         return
 
