@@ -358,7 +358,7 @@ class ChangelogCI:
             _print_output('error', msg)
             return
 
-        version = self._get_version_number()
+        version = f"{self._get_version_number()} {datetime.now().strftime('%m/%d/%Y')}"
 
         if not version:
             # if the pull request title is not valid, exit the method
@@ -378,7 +378,7 @@ class ChangelogCI:
         if not pull_request_data:
             return
 
-        string_data = self._parse_data(f"{version} {datetime.now().strftime('%m/%d/%Y')}", pull_request_data)
+        string_data = self._parse_data(version, pull_request_data)
 
         if self.config['commit_changelog']:
             subprocess.run(['echo', '::group::Commit Changelog'])
