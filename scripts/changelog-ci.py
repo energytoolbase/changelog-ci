@@ -358,7 +358,7 @@ class ChangelogCI:
             _print_output('error', msg)
             return
 
-        version = f"{self._get_version_number()} {datetime.now().strftime('%m/%d/%Y')}"
+        version = f"{self._get_version_number()} ({datetime.now().strftime('%m/%d/%Y')})"
 
         if not version:
             # if the pull request title is not valid, exit the method
