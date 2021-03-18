@@ -10,6 +10,7 @@ import requests
 # It was modified a little bit to make it a bit less restrictive
 DEFAULT_SEMVER_REGEX = r"v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.?(0|[1-9]\d*)?(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
 DEFAULT_PULL_REQUEST_TITLE_REGEX = r"^(?i:release)"
+TAG_VERSIONS_REGEX = r"((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)){1}\s((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)){1}"
 DEFAULT_VERSION_PREFIX = "Version:"
 DEFAULT_GROUP_CONFIG = []
 
@@ -27,6 +28,7 @@ class ChangelogCI:
         self.repository = repository
         self.filename = filename
         self.config = self._parse_config(config_file)
+        self.config["tag_versions_regex"] = TAG_VERSIONS_REGEX
         self.token = token
 
         title, number = self._get_pull_request_title_and_number(event_path)
@@ -95,6 +97,16 @@ class ChangelogCI:
 
         return
 
+    def _validate_tags(self):
+        pattern = re.compile(self.config['tag_versions_regex'])
+        match = pattern.search(self.pull_request_title)
+        if match:
+            return match.group()
+        return
+
+    def _get_tags(self, group):
+        return group.split()
+
     def _get_version_number(self):
         """Get version number from the pull request title"""
         pattern = re.compile(self.config['version_regex'])
@@ -132,11 +144,11 @@ class ChangelogCI:
 
         return headers
 
-    def _get_latest_release_date(self):
+    def _get_release_at_tag(self, tag):
         """Using GitHub API gets latest release date"""
         url = (
-            '{base_url}/repos/{repo_name}/releases/latest'
-        ).format(base_url=self.github_api_url, repo_name=self.repository)
+            '{base_url}/repos/{repo_name}/releases/tags/{gitTag}'
+        ).format(base_url=self.github_api_url, repo_name=self.repository, gitTag = tag)
 
         response = requests.get(url, headers=self._get_request_headers())
 
@@ -149,19 +161,20 @@ class ChangelogCI:
         else:
             # if there is no previous release API will return 404 Not Found
             msg = (
-                f'Could not find any previous release for '
-                f'{self.repository}, status code: {response.status_code}'
+                f'Could not find any tag release for '
+                f'{tag}, status code: {response.status_code}'
             )
             _print_output('warning', msg)
 
         return published_date
 
-    def _get_pull_requests_after_last_release(self):
+    def _get_pull_requests_beetween_tags(self, start, end):
         """Get all the merged pull request after latest release"""
-        previous_release_date = self._get_latest_release_date()
+        start_date = self._get_release_at_tag(start)
+        end_date = self._get_release_at_tag(end)
 
-        if previous_release_date:
-            merged_date_filter = 'merged:>=' + previous_release_date
+        if start_date and end_date:
+            merged_date_filter = f'merged:{start_date}..{end_date}'
         else:
             # if there is no release for the repo then
             # do not filter by merged date
@@ -358,7 +371,7 @@ class ChangelogCI:
             _print_output('error', msg)
             return
 
-        version = f"{self._get_version_number()} ({datetime.now().strftime('%m/%d/%Y')})"
+        version = self._get_version_number()
 
         if not version:
             # if the pull request title is not valid, exit the method
@@ -371,8 +384,20 @@ class ChangelogCI:
             )
             _print_output('error', msg)
             return
+        version +=({datetime.now().strftime('%m/%d/%Y')})
 
-        pull_request_data = self._get_pull_requests_after_last_release()
+        tags = self._validate_tags()
+        if not tags:
+            # If tags don't match "X.X.X X.X.X", return error.
+            msg = (
+                f'Could not find tags. '
+                f'Regex tried: {self.config["tag_versions_regex"]} '
+                f'Aborting Changelog Generation'
+            )
+            _print_output('error', msg)
+            return
+        separated_tags = self._get_tags(tags)
+        pull_request_data = self._get_pull_requests_beetween_tags(separated_tags[0],separated_tags[1])
 
         # exit the function if there is not pull request found
         if not pull_request_data:
