@@ -148,7 +148,7 @@ class ChangelogCI:
         """Using GitHub API gets latest release date"""
         url = (
             '{base_url}/repos/{repo_name}/releases/tags/{gitTag}'
-        ).format(base_url=self.github_api_url, repo_name=self.repository, gitTag = tag)
+        ).format(base_url=self.github_api_url, repo_name=self.repository, gitTag=tag)
 
         response = requests.get(url, headers=self._get_request_headers())
 
@@ -169,7 +169,7 @@ class ChangelogCI:
         return published_date
 
     def _get_pull_requests_beetween_tags(self, start, end):
-        """Get all the merged pull request after latest release"""
+        """Get all the merged pull request between tags"""
         start_date = self._get_release_at_tag(start)
         end_date = self._get_release_at_tag(end)
 
@@ -384,7 +384,7 @@ class ChangelogCI:
             )
             _print_output('error', msg)
             return
-        version +=({datetime.now().strftime('%m/%d/%Y')})
+        version += ({datetime.now().strftime('%m/%d/%Y')})
 
         tags = self._validate_tags()
         if not tags:
