@@ -384,7 +384,7 @@ class ChangelogCI:
             )
             _print_output('error', msg)
             return
-        version += f" {datetime.now().strftime('%m/%d/%Y')}"
+        version += f" ({datetime.now().strftime('%m/%d/%Y')})"
 
         tags = self._validate_tags()
         if not tags:
