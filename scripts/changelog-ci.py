@@ -158,7 +158,8 @@ class ChangelogCI:
         if response.status_code == 200:
             response_data = response.json()
             # get the published date of the latest release
-            commit_url = response_data['object']["url"]
+            commit_url = response_data["object"]["url"]
+            _print_output('warning', commit_url)
         else:
             # if there is no previous release API will return 404 Not Found
             msg = (
@@ -172,7 +173,8 @@ class ChangelogCI:
         if response.status_code == 200:
             response_data = response.json()
             # get the published date of the latest release
-            published_date = response_data['committer']["date"]
+            _print_output('warning', response_data)
+            published_date = response_data["committer"]["date"]
         else:
             # if there is no previous release API will return 404 Not Found
             msg = (
