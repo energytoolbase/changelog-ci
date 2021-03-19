@@ -183,8 +183,7 @@ class ChangelogCI:
                     response_data = response.json()
                     # get the published date of the latest release
                     _print_output('warning', response_data)
-                    try:
-                        published_date = response_data["committer"]["date"]
+                    published_date = response_data["committer"]["date"]
         else:
             # if there is no previous release API will return 404 Not Found
             msg = (
