@@ -147,17 +147,18 @@ class ChangelogCI:
     def _get_release_at_tag(self, tag):
         """Using GitHub API gets latest release date"""
         url = (
-            '{base_url}/repos/{repo_name}/releases/tags/{gitTag}'
+            '{base_url}/repos/{repo_name}/git/ref/tags/{gitTag}'
         ).format(base_url=self.github_api_url, repo_name=self.repository, gitTag=tag)
 
         response = requests.get(url, headers=self._get_request_headers())
 
+        commit_url = ''
         published_date = ''
 
         if response.status_code == 200:
             response_data = response.json()
             # get the published date of the latest release
-            published_date = response_data['published_at']
+            commit_url = response_data['object']["url"]
         else:
             # if there is no previous release API will return 404 Not Found
             msg = (
@@ -165,6 +166,21 @@ class ChangelogCI:
                 f'{tag}, status code: {response.status_code}'
             )
             _print_output('warning', msg)
+
+        url = f'{commit_url}'
+        response = requests.get(url, headers=self._get_request_headers())
+        if response.status_code == 200:
+            response_data = response.json()
+            # get the published date of the latest release
+            published_date = response_data['committer']["date"]
+        else:
+            # if there is no previous release API will return 404 Not Found
+            msg = (
+                f'Could not find any tag release for '
+                f'{tag}, status code: {response.status_code}'
+            )
+            _print_output('warning', msg)
+
 
         return published_date
 
