@@ -197,7 +197,8 @@ class ChangelogCI:
         """Get all the merged pull request between tags"""
         start_date = self._get_release_at_tag(start)
         end_date = self._get_release_at_tag(end)
-
+        print(start_date)
+        print(end_date)
         if start_date and end_date:
             merged_date_filter = f'merged:{start_date}..{end_date}'
         else:
