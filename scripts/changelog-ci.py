@@ -158,6 +158,7 @@ class ChangelogCI:
         if response.status_code == 200:
             response_data = response.json()
             # get the published date of the latest release
+            _print_output('warning', response_data)
             commit_url = response_data["object"]["url"]
             _print_output('warning', commit_url)
         else:
