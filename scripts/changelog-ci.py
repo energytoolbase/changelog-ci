@@ -174,7 +174,17 @@ class ChangelogCI:
             response_data = response.json()
             # get the published date of the latest release
             _print_output('warning', response_data)
-            published_date = response_data["committer"]["date"]
+            try:
+                published_date = response_data["committer"]["date"]
+            except KeyError:
+                commit_url = response_data["object"]["url"]
+                response = requests.get(commit_url, headers=self._get_request_headers())
+                if response.status_code == 200:
+                    response_data = response.json()
+                    # get the published date of the latest release
+                    _print_output('warning', response_data)
+                    try:
+                        published_date = response_data["committer"]["date"]
         else:
             # if there is no previous release API will return 404 Not Found
             msg = (
