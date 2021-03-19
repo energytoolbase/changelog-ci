@@ -168,8 +168,7 @@ class ChangelogCI:
             )
             _print_output('warning', msg)
 
-        url = f'{commit_url}'
-        response = requests.get(url, headers=self._get_request_headers())
+        response = requests.get(commit_url, headers=self._get_request_headers())
         if response.status_code == 200:
             response_data = response.json()
             # get the published date of the latest release
@@ -182,8 +181,6 @@ class ChangelogCI:
                 f'{tag}, status code: {response.status_code}'
             )
             _print_output('warning', msg)
-
-
         return published_date
 
     def _get_pull_requests_beetween_tags(self, start, end):
