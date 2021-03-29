@@ -214,6 +214,7 @@ class ChangelogCI:
             'sort:author-date-asc+'
             '{merged_date_filter}'
             '&sort=merged'
+            '&page=1'
         ).format(
             base_url=self.github_api_url,
             repo_name=self.repository,
@@ -238,6 +239,18 @@ class ChangelogCI:
                         'labels': [label['name'] for label in item['labels']]
                     }
                     items.append(data)
+                while 'next' in response.links.keys():
+                    response = requests.get(response.links['next']['url'], headers=self._get_request_headers())
+                    response_data = response.json()
+                    if response_data['total_count'] > 0:
+                        for item in response_data['items']:
+                            data = {
+                                'title': item['title'],
+                                'number': item['number'],
+                                'url': item['html_url'],
+                                'labels': [label['name'] for label in item['labels']]
+                            }
+                            items.append(data)
             else:
                 msg = (
                     f'There was no pull request '
