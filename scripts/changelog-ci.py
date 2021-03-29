@@ -193,6 +193,31 @@ class ChangelogCI:
             _print_output('warning', msg)
         return published_date
 
+    def _extract_data(self, items, response_data):
+        for item in response_data['items']:
+            data = {
+                'title': item['title'],
+                'number': item['number'],
+                'url': item['html_url'],
+                'labels': [label['name'] for label in item['labels']]
+            }
+            items.append(data)
+
+    def _get_data_from_pr(self, items, response_data, response):
+        if response_data['total_count'] > 0:
+            self._extract_data(items, response_data)
+            while 'next' in response.links.keys():
+                response = requests.get(response.links['next']['url'], headers=self._get_request_headers())
+                response_data = response.json()
+                self._extract_data(items, response_data)
+        else:
+            msg = (
+                f'There was no pull request '
+                f'made on {self.repository} after last release.'
+            )
+            _print_output('error', msg)
+        return items
+
     def _get_pull_requests_beetween_tags(self, start, end):
         """Get all the merged pull request between tags"""
         start_date = self._get_release_at_tag(start)
@@ -226,36 +251,7 @@ class ChangelogCI:
 
         if response.status_code == 200:
             response_data = response.json()
-
-            # ``total_count`` represents the number of
-            # pull requests returned by the API call
-            if response_data['total_count'] > 0:
-                for item in response_data['items']:
-                    data = {
-                        'title': item['title'],
-                        'number': item['number'],
-                        'url': item['html_url'],
-                        'labels': [label['name'] for label in item['labels']]
-                    }
-                    items.append(data)
-                while 'next' in response.links.keys():
-                    response = requests.get(response.links['next']['url'], headers=self._get_request_headers())
-                    response_data = response.json()
-                    if response_data['total_count'] > 0:
-                        for item in response_data['items']:
-                            data = {
-                                'title': item['title'],
-                                'number': item['number'],
-                                'url': item['html_url'],
-                                'labels': [label['name'] for label in item['labels']]
-                            }
-                            items.append(data)
-            else:
-                msg = (
-                    f'There was no pull request '
-                    f'made on {self.repository} after last release.'
-                )
-                _print_output('error', msg)
+            self._get_data_from_pr(items, response_data, response)
         else:
             msg = (
                 f'Could not get pull requests for '
