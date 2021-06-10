@@ -311,7 +311,7 @@ class ChangelogCI:
         """Write changelog to the changelog file"""
         file_mode = self._get_file_mode()
 
-        with open(self.filename, file_mode) as f:
+        with open(self.filename, "r+") as f:
             for line in f:
                 pass
 
