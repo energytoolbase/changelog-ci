@@ -311,6 +311,17 @@ class ChangelogCI:
         """Write changelog to the changelog file"""
         file_mode = self._get_file_mode()
 
+        with open(self.filename, "r+") as f:
+            for line in f:
+                pass
+
+            regex_pattern = r".*\n"
+            pattern = re.compile(regex_pattern)
+            match = pattern.search(line)
+
+            if not match:
+                f.write("\n")
+
         with open(self.filename, file_mode) as f:
             # read the existing data and store it in a variable
             body = f.read()
