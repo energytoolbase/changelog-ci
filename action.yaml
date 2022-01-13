@@ -1,0 +1,25 @@
+name: Changelog CI
+description: Changelog CI is a GitHub Action that generates changelog, then it is committed and/or commented to the release pull request.
+author: Maksudul Haque
+branding:
+  icon: 'clock'
+  color: 'blue'
+inputs:
+  changelog_filename:
+    description: 'Name of the changelog file if not provided defaults to CHANGELOG.md'
+    required: false
+    default: 'CHANGELOG.md'
+  config_file:
+    description: 'Location of the config JSON file'
+    required: false
+  committer_username:
+    description: 'Username of that user who will commit'
+    required: false
+    default: 'github-actions[bot]'
+  committer_email:
+    description: 'Email Address of that user who will commit'
+    required: false
+    default: '41898282+github-actions[bot]@users.noreply.github.com'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
