@@ -622,9 +622,14 @@ if __name__ == '__main__':
     username = os.environ['INPUT_COMMITTER_USERNAME']
     email = os.environ['INPUT_COMMITTER_EMAIL']
 
+    # Setup git credentials
+    subprocess.run(['git', 'config', '--global', 'user.name', username])
+    subprocess.run(['git', 'config', '--global', 'user.email',  email])
+    # Add workspace directory to safe list. This fixes "dubious ownership" issue
+    subprocess.run(['git', 'config', '--global', '--add', 'safe.directory', '/github/workspace'])
+
     # Group: Checkout git repository
     subprocess.run(['echo', '::group::Checkout git repository'])
-
     subprocess.run(['git', 'fetch', '--prune', '--unshallow', 'origin',  head_ref])
     subprocess.run(['git', 'checkout',  head_ref])
 
@@ -632,9 +637,6 @@ if __name__ == '__main__':
 
     # Group: Configure Git
     subprocess.run(['echo', '::group::Configure Git'])
-
-    subprocess.run(['git', 'config', 'user.name', username])
-    subprocess.run(['git', 'config', 'user.email',  email])
 
     subprocess.run(['echo', '::endgroup::'])
 
