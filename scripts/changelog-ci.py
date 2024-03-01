@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import re
 import subprocess
@@ -236,6 +237,7 @@ class ChangelogCI:
             '?q=repo:{repo_name}+'
             'is:pr+'
             'is:merged+'
+            'base:master+'
             '{merged_date_filter}'
             '&sort=merged'
             '&page=1'
