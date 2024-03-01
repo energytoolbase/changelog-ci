@@ -13,6 +13,9 @@ DEFAULT_PULL_REQUEST_TITLE_REGEX = r"^(?i:release)"
 TAG_VERSIONS_REGEX = r"((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)){1}\s((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)){1}"
 DEFAULT_VERSION_PREFIX = "Version:"
 DEFAULT_GROUP_CONFIG = []
+POINT_RELEASE_PATTERN = r'^(\d+)\.(\d+)\.(\d+)$'
+POINT_RELEASE_LABEL = "point release"
+POINT_RELEASE_TITLE = "Point Release"
 
 
 class ChangelogCI:
@@ -222,8 +225,6 @@ class ChangelogCI:
         """Get all the merged pull request between tags"""
         start_date = self._get_release_at_tag(start)
         end_date = self._get_release_at_tag(end)
-        print(start_date)
-        print(end_date)
         if start_date and end_date:
             merged_date_filter = f'merged:{start_date}..{end_date}'
         else:
@@ -262,21 +263,33 @@ class ChangelogCI:
 
         return items
 
-    def _parse_data(self, version, pull_request_data):
+    def _parse_data(self, version, pull_request_data, is_point_release: bool):
         """Parse the pull requests data and return a writable data structure"""
         string_data = (
             '# ' + self.config['header_prefix'] + ' ' + version + '\n\n'
         )
 
         group_config = self.config['group_config']
+        items_string = ''
 
-        if group_config:
+        # If it's a point release, only grab things with the point release tag.
+        print(f"ispointrelease:{is_point_release}")
+        if is_point_release:
+            for pull_request in pull_request_data:
+                print(f"pullrequestdata:{pull_request}")
+                if POINT_RELEASE_LABEL in pull_request['labels']:
+                    print(f"getchangelogline:{self._get_changelog_line(pull_request)}")
+                    items_string += self._get_changelog_line(pull_request)
+            if items_string:
+                if group_config:
+                    string_data += '\n#### ' + POINT_RELEASE_TITLE + '\n\n'
+                string_data += '\n' + items_string
+
+        elif not is_point_release and group_config:
             for config in group_config:
 
                 if len(pull_request_data) == 0:
                     break
-
-                items_string = ''
 
                 for pull_request in pull_request_data:
                     # check if the pull request label matches with
@@ -301,8 +314,8 @@ class ChangelogCI:
                 # Add items in ``Other Changes`` group
                 string_data += '\n#### Other Changes\n\n'
                 string_data += ''.join(map(self._get_changelog_line, pull_request_data))
-        else:
-            # If group config does not exist then append it without and groups
+        elif not is_point_release and not group_config:
+            # If group config does not exist then append it without groups
             string_data += ''.join(map(self._get_changelog_line, pull_request_data))
 
         return string_data
@@ -337,6 +350,23 @@ class ChangelogCI:
         subprocess.run(['git', 'add', self.filename])
         subprocess.run(['git', 'commit', '-m', '(Changelog CI) Added Changelog'])
         subprocess.run(['git', 'push', '-u', 'origin', head_ref])
+
+    def is_point_release(self, end_version: str):
+        pattern = re.compile(POINT_RELEASE_PATTERN)
+
+        # Match the version string against the pattern
+        match = pattern.match(end_version)
+
+        if match:
+            _, _, patch = map(int, match.groups())
+
+            # Check if it's a patch release or a point release
+            if patch > 0:
+                return True
+            else:
+                return False
+        else:
+            print(f"Invalid end tag version format: {end_version}")
 
     def _comment_changelog(self, string_data):
         """Comments Changelog to the pull request"""
@@ -442,14 +472,14 @@ class ChangelogCI:
             _print_output('error', msg)
             return
         separated_tags = self._get_tags(tags)
-        pull_request_data = self._get_pull_requests_beetween_tags(separated_tags[0],separated_tags[1])
+        start_version, end_version = separated_tags[0], separated_tags[1]
+        pull_request_data = self._get_pull_requests_beetween_tags(start_version, end_version)
 
         # exit the function if there is not pull request found
         if not pull_request_data:
             return
-
-        string_data = self._parse_data(version, pull_request_data)
-
+        is_point_release = self.is_point_release(end_version)
+        string_data = self._parse_data(version, pull_request_data, is_point_release)
         if self.config['commit_changelog']:
             subprocess.run(['echo', '::group::Commit Changelog'])
             self._commit_changelog(string_data)
