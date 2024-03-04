@@ -311,7 +311,7 @@ class ChangelogCI:
                 # Add items in ``Other Changes`` group
                 string_data += '\n#### Other Changes\n\n'
                 string_data += ''.join(map(self._get_changelog_line, pull_request_data))
-        elif (not is_point_release) and not group_config:
+        else:
             # If group config does not exist then append it without groups
             string_data += ''.join(map(self._get_changelog_line, pull_request_data))
 
