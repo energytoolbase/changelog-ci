@@ -282,7 +282,7 @@ class ChangelogCI:
                     string_data += '\n#### ' + POINT_RELEASE_TITLE + '\n\n'
                 string_data += '\n' + items_string
 
-        elif not is_point_release and group_config:
+        elif (not is_point_release) and group_config:
             for config in group_config:
 
                 if len(pull_request_data) == 0:
@@ -311,7 +311,7 @@ class ChangelogCI:
                 # Add items in ``Other Changes`` group
                 string_data += '\n#### Other Changes\n\n'
                 string_data += ''.join(map(self._get_changelog_line, pull_request_data))
-        elif not is_point_release and not group_config:
+        elif (not is_point_release) and not group_config:
             # If group config does not exist then append it without groups
             string_data += ''.join(map(self._get_changelog_line, pull_request_data))
 
