@@ -307,6 +307,14 @@ class ChangelogCI:
 
         return string_data
 
+    def _get_last_tag(self):
+        # Get the latest tag, sorted
+        result = subprocess.run('git tag -l --sort=-v:refname | head -n 1', shell=True, stdout=subprocess.PIPE,
+                                text=True)
+        last_tag = result.stdout.strip()
+        return last_tag
+
+
     def _commit_changelog(self, string_data):
         """Write changelog to the changelog file"""
         file_mode = self._get_file_mode()
@@ -337,6 +345,12 @@ class ChangelogCI:
         subprocess.run(['git', 'add', self.filename])
         subprocess.run(['git', 'commit', '-m', '(Changelog CI) Added Changelog'])
         subprocess.run(['git', 'push', '-u', 'origin', head_ref])
+        last_tag = self._get_last_tag()
+        subprocess.run(['git', 'tag', '-d', last_tag])
+        subprocess.run(['git', 'push', '--delete', last_tag])
+        # Note: We have to use the format method here, github actions uses an older version of python that doesn't support fstrings
+        subprocess.run(['git', 'tag', '-a', last_tag, '-m', 'Release {last_tag}'.format(last_tag=last_tag)])
+        subprocess.run(['git', 'push', 'origin', last_tag])
 
     def _comment_changelog(self, string_data):
         """Comments Changelog to the pull request"""
