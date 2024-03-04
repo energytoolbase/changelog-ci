@@ -282,7 +282,7 @@ class ChangelogCI:
                     string_data += '\n#### ' + POINT_RELEASE_TITLE + '\n\n'
                 string_data += '\n' + items_string
 
-        elif (not is_point_release) and group_config:
+        elif group_config:
             for config in group_config:
 
                 if len(pull_request_data) == 0:
