@@ -236,6 +236,7 @@ class ChangelogCI:
             '?q=repo:{repo_name}+'
             'is:pr+'
             'is:merged+'
+            'base:master+'
             '{merged_date_filter}'
             '&sort=merged'
             '&page=1'
