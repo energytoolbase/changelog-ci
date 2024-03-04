@@ -273,12 +273,9 @@ class ChangelogCI:
         items_string = ''
 
         # If it's a point release, only grab things with the point release tag.
-        print(f"ispointrelease:{is_point_release}")
         if is_point_release:
             for pull_request in pull_request_data:
-                print(f"pullrequestdata:{pull_request}")
                 if POINT_RELEASE_LABEL in pull_request['labels']:
-                    print(f"getchangelogline:{self._get_changelog_line(pull_request)}")
                     items_string += self._get_changelog_line(pull_request)
             if items_string:
                 if group_config:
@@ -366,7 +363,7 @@ class ChangelogCI:
             else:
                 return False
         else:
-            print(f"Invalid end tag version format: {end_version}")
+            _print_output('error', f"Invalid end tag version format: {end_version}")
 
     def _comment_changelog(self, string_data):
         """Comments Changelog to the pull request"""
