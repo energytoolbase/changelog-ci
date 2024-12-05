@@ -289,6 +289,8 @@ class ChangelogCI:
                 if len(pull_request_data) == 0:
                     break
 
+                items_string = ''
+
                 for pull_request in pull_request_data:
                     # check if the pull request label matches with
                     # any label of the config
